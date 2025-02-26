@@ -1,5 +1,3 @@
-from gurobipy import *
-
 class ColumnGeneration:
     def __init__(self, problem):
         self.problem = problem
