@@ -1,5 +1,5 @@
 class Shipment:
-    def __init__(self, month, postalCode, country, weight, isPickUp, isDangerous):
+    def __init__(self, month, postalCode, country, weight, yoisPickUp, isDangerous):
         self.month = month
         self.postalCode = postalCode
         self.country = country
