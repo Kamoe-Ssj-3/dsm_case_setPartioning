@@ -10,7 +10,7 @@ from warehouse import Warehouse
 class Problem:
     def __init__(self, filepath, csvFilePath):
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
-        # self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
+        self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
 
     @staticmethod
     def extract_data(file_path):
