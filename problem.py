@@ -10,6 +10,7 @@ from warehouse import Warehouse
 class Problem:
     def __init__(self, filepath, csvFilePath):
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
+        self.timePeriods = list(range(1, 13))
         self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
 
     @staticmethod
@@ -77,6 +78,7 @@ class Problem:
                     postalCode='12',
                     country='CH',
                     capacity=1000 * 700,
+                    openingCost=0,
                     shuttleCost=0.1,
                     xDockCost=0.1,
                     nonDgCost=None,
@@ -90,6 +92,7 @@ class Problem:
                     postalCode='12',
                     country='CH',
                     capacity=2000 * 700,
+                    openingCost=0,
                     shuttleCost=0.05,
                     xDockCost=None,
                     nonDgCost=15 * cr / 700,
@@ -102,24 +105,29 @@ class Problem:
                     warehouseId = 'FR01'
                     country = 'FR'
                     postalCode = '01'
+                    openingCost = 0
                 elif i == 3:
                     warehouseId = 'ES50'
                     country = 'ES'
                     postalCode = '50'
+                    openingCost = 500000
                 elif i == 4:
                     warehouseId = 'PL46'
                     country = 'PL'
                     postalCode = '46'
+                    openingCost = 500000
                 else:
                     warehouseId = 'TR59'
                     country = 'TR'
                     postalCode = '59'
+                    openingCost = 500000
 
                 warehouse = Warehouse(
                     warehouseId=warehouseId,
                     postalCode=postalCode,
                     country=country,
                     capacity=5000 * 700,
+                    openingCost=openingCost,
                     shuttleCost=0.05,
                     xDockCost=None,
                     nonDgCost=8 / 700,

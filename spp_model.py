@@ -18,17 +18,24 @@ class SPPModel:
             self.model.addConstr(slack_var == 1, name=f"CoverShipment_{idx}")
 
         for site in self.problem.sites:
-            self.model.addConstr(
-                0 <= site.capacity,
-                name=f"ProductionCapacity_{site.siteId}"
+            for t in self.problem.timePeriods:
+                self.model.addConstr(
+                    0 <= site.capacity,
+                    name=f"ProductionCapacity_{site.siteId}_T{t}"
+                )
+
+        for warehouse in self.problem.warehouses:
+            y_var = self.model.addVar(
+                vtype=GRB.CONTINUOUS,
+                obj=warehouse.openingCost,
+                name=f"OpenWarehouse_{warehouse.warehouseId}"
             )
 
-        # Warehouse capacity constraints
-        for warehouse in self.problem.warehouses:
-            self.model.addConstr(
-                0 <= warehouse.capacity,
-                name=f"WarehouseCapacity_{warehouse.warehouseId}"
-            )
+            for t in self.problem.timePeriods:
+                self.model.addConstr(
+                    0 <= warehouse.capacity * y_var,
+                    name=f"WarehouseCapacity_{warehouse.warehouseId}_T{t}"
+                )
 
         self.model.update()
 
