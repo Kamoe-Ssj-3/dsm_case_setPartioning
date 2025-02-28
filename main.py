@@ -3,14 +3,14 @@ import pprint
 from problem import Problem
 
 def main():
-    filePath = "shipment_data.csv"
+    filePath = "shipment_data_def.csv"
     csvFilePath = "road_cost.csv"
 
     problem = Problem(filePath, csvFilePath)
 
     print("Shipments:")
     for s in problem.shipments[:50]:
-        print(s.month, s.postalCode, s.country, s.isDangerous, s.weight, s.isDelivery)
+        print(s.month, s.postalCode, s.country, s.isDangerous, s.weight, s.isPickUp, s.planning, s.startingPoint)
 
     print()
     print("Sites:")

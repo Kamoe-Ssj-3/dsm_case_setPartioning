@@ -6,46 +6,44 @@ from shipment import Shipment
 from production_site import ProductionSite
 from warehouse import Warehouse
 
+
 class Problem:
     def __init__(self, filepath, csvFilePath):
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
-        self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
+        # self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
 
     @staticmethod
     def extract_data(file_path):
-        df = pd.read_csv(file_path)
-
+        df = pd.read_csv(file_path, delimiter=';')  # Use correct delimiter
         df.columns = df.columns.str.strip()
 
         shipments = []
         for _, row in df.iterrows():
-            month = str(row["Calendar Year/Month"])[-2:]
-            shipmentMode = row["Shipping Mode"].strip().lower()
+            month = str(row["Month-Year"])[-2:]
+            postalCode = str(row["Postal Code 2 digits"]).strip()[:2]
+            country = row["Country of Destination"]
 
-            if shipmentMode == "road":
-                postalCode = str(row["Postal Code 2 digits"]).strip()[:2]
-                country = row["Country of Destination"]
-            elif shipmentMode == "air":
-                postalCode = 12
-                country = "CH"
-            elif shipmentMode == "sea":
-                postalCode = 20
-                country = "BE"
+            if country.strip().lower() == "pickup":
+                postalCode = "Null"
+                country = "null"
+                isPickUp = True
             else:
-                continue
+                isPickUp = False
 
             isDangerous = str(row["Dangerous Goods"]).strip().lower() == "dg"
-            isDelivery = str(row["Shipping"]).strip().lower() == "delivery"
-
             weight = row["KG2"]
+            planning = row["Planning"]
+            startingPoint = row["Starting Point"]
 
             shipment = Shipment(
                 month=month,
                 postalCode=postalCode,
                 country=country,
                 weight=weight,
-                isDelivery=isDelivery,
-                isDangerous=isDangerous
+                isPickUp=isPickUp,
+                isDangerous=isDangerous,
+                planning=planning,
+                startingPoint=startingPoint,
             )
             shipments.append(shipment)
 
