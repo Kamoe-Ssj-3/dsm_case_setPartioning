@@ -23,9 +23,9 @@ def main():
         print(w.warehouseId, w.postalCode, w.country, w.capacity, w.shuttleCost,
               w.xDockCost, w.nonDgCost, w.dgCost, w.inboundCost, w.outboundCost)
 
-    print()
-    print('Cost dictionary:')
-    pprint.pprint(problem.routeCostDictionary)
+    # print()
+    # print('Cost dictionary:')
+    # pprint.pprint(problem.routeCostDictionary)
 
 
 if __name__ == "__main__":

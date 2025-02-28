@@ -98,20 +98,27 @@ class Problem:
                     outboundCost=10 * cr / 700
                 )
             else:
-                warehouseId='' # Niet nodig?
                 if i == 2:
                     warehouseId = 'FR01'
+                    country = 'FR'
+                    postalCode = '01'
                 elif i == 3:
                     warehouseId = 'ES50'
+                    country = 'ES'
+                    postalCode = '50'
                 elif i == 4:
                     warehouseId = 'PL46'
+                    country = 'PL'
+                    postalCode = '46'
                 else:
                     warehouseId = 'TR59'
+                    country = 'TR'
+                    postalCode = '59'
 
                 warehouse = Warehouse(
                     warehouseId=warehouseId,
-                    postalCode='74',
-                    country='FR',
+                    postalCode=postalCode,
+                    country=country,
                     capacity=5000 * 700,
                     shuttleCost=0.05,
                     xDockCost=None,
