@@ -11,3 +11,10 @@ class ColumnGeneration:
 
         value = model.solve()
         print(value)
+
+
+
+
+
+
+
