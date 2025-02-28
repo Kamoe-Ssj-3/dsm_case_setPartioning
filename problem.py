@@ -67,7 +67,7 @@ class Problem:
 
             sites.append(site)
 
-        numberOfWarehouses = 3
+        numberOfWarehouses = 6
         warehouses = []
         cr = 1.06
         for i in range(numberOfWarehouses):
@@ -82,7 +82,7 @@ class Problem:
                     nonDgCost=None,
                     dgCost=None,
                     inboundCost=10 * cr / 700,
-                    outboundCost=10 * cr / 700,
+                    outboundCost=10 * cr / 700
                 )
             elif i == 1:
                 warehouse = Warehouse(
@@ -95,11 +95,21 @@ class Problem:
                     nonDgCost=15 * cr / 700,
                     dgCost=15 * cr / 700,
                     inboundCost=10 * cr / 700,
-                    outboundCost=10 * cr / 700,
+                    outboundCost=10 * cr / 700
                 )
             else:
+                warehouseId='' # Niet nodig?
+                if i == 2:
+                    warehouseId = 'FR01'
+                elif i == 3:
+                    warehouseId = 'ES50'
+                elif i == 4:
+                    warehouseId = 'PL46'
+                else:
+                    warehouseId = 'TR59'
+
                 warehouse = Warehouse(
-                    warehouseId=f'FR01',
+                    warehouseId=warehouseId,
                     postalCode='74',
                     country='FR',
                     capacity=5000 * 700,
@@ -108,7 +118,7 @@ class Problem:
                     nonDgCost=8 / 700,
                     dgCost=12 / 700,
                     inboundCost=4 / 700,
-                    outboundCost=4 / 700,
+                    outboundCost=4 / 700
                 )
             warehouses.append(warehouse)
 
