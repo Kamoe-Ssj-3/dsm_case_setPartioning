@@ -1,6 +1,7 @@
 import pprint
 
 from problem import Problem
+from column_generation import ColumnGeneration
 
 def main():
     filePath = "shipment_data_def.csv"
@@ -26,6 +27,8 @@ def main():
     # print()
     # print('Cost dictionary:')
     # pprint.pprint(problem.routeCostDictionary)
+
+    value = ColumnGeneration(problem).run()
 
 
 if __name__ == "__main__":

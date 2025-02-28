@@ -14,7 +14,7 @@ class Problem:
 
     @staticmethod
     def extract_data(file_path):
-        df = pd.read_csv(file_path, delimiter=';')  # Use correct delimiter
+        df = pd.read_csv(file_path, delimiter=';')
         df.columns = df.columns.str.strip()
 
         shipments = []
