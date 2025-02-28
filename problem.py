@@ -143,18 +143,20 @@ class Problem:
             "<=10000",
             "<=15000",
             "FTL",
-            "Sample shipment (no minimum calculation)",
+            "Carrier Leadtime in working days",
+            #"Sample shipment (no minimum calculation)",
             "Custom Clearance",
-            "DG Surcharge per shipment"
+            "DG Surcharge per shipment",
+            "Distance"
         ]
 
         result = {}
 
         with open(csv_file_path, "r", newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
+            reader = csv.DictReader(f, delimiter=";")
 
             for row in reader:
-                dep_shipping_point = row["Dep.shipping point"].strip()
+                dep_shipping_point = row["Origin"].strip()
                 ship_to_country = row["Ship to Country code"].strip()
                 postal_2digits = row["Ship to simplified postcode 2 digits"].strip()
 

@@ -4,7 +4,7 @@ from problem import Problem
 
 def main():
     filePath = "shipment_data_def.csv"
-    csvFilePath = "road_cost.csv"
+    csvFilePath = "RoadRate_with_all_lanes.csv"
 
     problem = Problem(filePath, csvFilePath)
 
