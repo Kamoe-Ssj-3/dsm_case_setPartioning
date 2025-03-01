@@ -4,35 +4,26 @@ import re
 class RouteCost:
     def __init__(self, csvFilePath):
         self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
+        self.weight_categories = [
+            (50, "<=50kg"),
+            (100, "<=100kg"),
+            (200, "<=200"),
+            (400, "<=400"),
+            (800, "<=800"),
+            (1500, "<=1500"),
+            (5000, "<=5000"),
+            (10000, "<=10000"),
+            (15000, "<=15000"),
+            (20000, "FTL")
+        ]
 
     def extract_numeric_value(self, value):
-        """
-        Extracts the first numeric value from a string and converts it to a float.
-        If no numeric value is found, returns None.
-        """
-        match = re.search(r"[\d,]+(?:\.\d+)?", value)  # Match numbers, including decimals
+        match = re.search(r"[\d,]+(?:\.\d+)?", value)
         if match:
-            return float(match.group().replace(",", ""))  # Convert to float, remove thousands separator
-        return None  # Return None if no number is found
-
+            return float(match.group().replace(",", ""))
+        return None
 
     def build_cost_dictionary_from_csv(self, csv_file_path):
-        """
-        Reads the CSV file and builds a nested dictionary of the form:
-        {
-          country_code: {
-             postal_2digits: {
-                dep_shipping_point: {
-                   'Minimum': float,
-                   '<=50kg': float,
-                   '<=100kg': float,
-                   ...
-                   'DG Surcharge per shipment': float
-                }
-             }
-          }
-        }
-        """
         cost_keys = [
             "Minimum",
             "<=50kg",
@@ -45,18 +36,20 @@ class RouteCost:
             "<=10000",
             "<=15000",
             "FTL",
-            "Sample shipment (no minimum calculation)",
+            "Carrier Leadtime in working days",
+            # "Sample shipment (no minimum calculation)",
             "Custom Clearance",
-            "DG Surcharge per shipment"
+            "DG Surcharge per shipment",
+            "Distance"
         ]
 
         result = {}
 
         with open(csv_file_path, "r", newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
+            reader = csv.DictReader(f, delimiter=";")
 
             for row in reader:
-                dep_shipping_point = row["Dep.shipping point"].strip()
+                dep_shipping_point = row["Origin"].strip()
                 ship_to_country = row["Ship to Country code"].strip()
                 postal_2digits = row["Ship to simplified postcode 2 digits"].strip()
 
@@ -72,15 +65,30 @@ class RouteCost:
 
         return result
 
+    def getCost(self, country, postal_code, dep_point, weight):
+        """
+        Retrieves the cost for a given weight by finding the smallest weight category that is greater than or equal to the given weight.
+        """
+        minCost = self.routeCostDictionary[country][postal_code][dep_point]["Minimum"]
+        for max_weight, cost_category in self.weight_categories:
+            if weight <= max_weight:
+                cost = self.routeCostDictionary[country][postal_code][dep_point][cost_category]
+                if cost < minCost:
+                    return minCost
+                else:
+                    return cost
 
-# # --------------------------
-# # Example usage:
-# # --------------------------
-# if __name__ == "__main__":
-#     csv_path = "road_cost.csv"  # Replace with your actual CSV file path
-#     nested_dict = build_cost_dictionary_from_csv(csv_path)
-#
-#     # Print or inspect the resulting nested dictionary
-#     import pprint
-#
-#     pprint.pprint(nested_dict)
+    def calculateRouteCost(self, country, postalCode, depPoint, weight, dangerous):
+        route_cost = self.getCost(country, postalCode, depPoint, weight)
+        if (dangerous):
+            route_cost += self.getDGSurcharge(country, postalCode, depPoint)
+        return route_cost
+
+    def getDistance(self, country, postal_code, dep_point):
+        return self.routeCostDictionary[country][postal_code][dep_point]["Distance"]
+
+    def getLeadtime(self, country, postal_code, dep_point):
+        return self.routeCostDictionary[country][postal_code][dep_point]["Carrier Leadtime in working days"]
+
+    def getDGSurcharge(self, country, postal_code, dep_point):
+        return self.routeCostDictionary[country][postal_code][dep_point]["DG Surcharge per shipment"]

@@ -2,6 +2,7 @@ import pandas as pd
 import csv
 import re
 
+from route_cost import RouteCost
 from shipment import Shipment
 from production_site import ProductionSite
 from warehouse import Warehouse
@@ -11,7 +12,7 @@ class Problem:
     def __init__(self, filepath, csvFilePath):
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
         self.timePeriods = list(range(1, 13))
-        self.routeCostDictionary = self.build_cost_dictionary_from_csv(csvFilePath)
+        self.routeCostDictionary = RouteCost(csvFilePath)
 
     @staticmethod
     def extract_data(file_path):
@@ -187,3 +188,4 @@ class Problem:
                 result[ship_to_country][postal_2digits][dep_shipping_point] = cost_dict
 
         return result
+

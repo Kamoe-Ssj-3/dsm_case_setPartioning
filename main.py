@@ -25,8 +25,8 @@ def main():
               w.xDockCost, w.nonDgCost, w.dgCost, w.inboundCost, w.outboundCost)
 
     print()
-    print('Cost dictionary:')
-    pprint.pprint(problem.routeCostDictionary)
+    # print('Cost dictionary:')
+    # pprint.pprint(problem.routeCostDictionary)
 
     value = ColumnGeneration(problem).run()
 
