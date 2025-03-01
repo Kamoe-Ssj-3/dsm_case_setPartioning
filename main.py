@@ -11,7 +11,7 @@ def main():
 
     print("Shipments:")
     for s in problem.shipments[:50]:
-        print(s.month, s.postalCode, s.country, s.isDangerous, s.weight, s.isPickUp, s.planning, s.startingPoint)
+        print(s.shipmentId, s.month, s.postalCode, s.country, s.isDangerous, s.weight, s.isPickUp, s.planning, s.startingPoint)
 
     print()
     print("Sites:")

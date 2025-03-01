@@ -10,7 +10,9 @@ class ColumnGeneration:
         model.initialize_RMP()
 
         lambdas, mu, sigma = model.solveRMP()
-        print(lambdas)
+
+
+        print(mu)
 
 
 

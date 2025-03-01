@@ -8,21 +8,21 @@ class SPPModel:
     def initialize_RMP(self, bigM=1e5):
         self.model = Model("SPP")
 
-        for idx, shipment in enumerate(self.problem.shipments):
+        for shipment in self.problem.shipments:
             slack_var = self.model.addVar(
                 lb=0,
                 vtype=GRB.CONTINUOUS,
                 obj=bigM,
-                name=f"Slack_{idx}"
+                name=f"Slack_{shipment.shipmentId}"
             )
-            self.model.addConstr(slack_var == 1, name=f"CoverShipment_{idx}")
+            self.model.addConstr(slack_var == 1, name=f"CoverShipment_{shipment.shipmentId}")
 
-        for site in self.problem.sites:
-            for t in self.problem.timePeriods:
-                self.model.addConstr(
-                    0 <= site.capacity,
-                    name=f"ProductionCapacity_{site.siteId}_T{t}"
-                )
+
+        for t in self.problem.timePeriods:
+            self.model.addConstr(
+                0 <= 250000,
+                name=f"ProductionCapacity_{'CH01'}_T{t}"
+            )
 
         for warehouse in self.problem.warehouses:
             y_var = self.model.addVar(
@@ -49,11 +49,11 @@ class SPPModel:
             c = self.model.getConstrByName(f"CoverShipment_{idx}")
             lambdas.append(c.Pi)
 
-        mu = {}  # Key: (siteId, timePeriod), Value: dual value
+        mu = []
         for t in self.problem.timePeriods:
             c_name = f"ProductionCapacity_CH01_T{t}"
             c = self.model.getConstrByName(c_name)
-            mu[('CH01', t)] = c.Pi
+            mu.append(c.Pi)
 
         sigma = {} # Key: (warehouseId, timePeriod), Value: dual value
         for warehouse in self.problem.warehouses:

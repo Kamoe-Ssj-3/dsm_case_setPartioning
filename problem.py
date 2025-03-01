@@ -19,7 +19,7 @@ class Problem:
         df.columns = df.columns.str.strip()
 
         shipments = []
-        for _, row in df.iterrows():
+        for idx, row in df.iterrows():
             month = str(row["Month-Year"])[-2:]
             postalCode = str(row["Postal Code 2 digits"]).strip()[:2]
             country = row["Country of Destination"]
@@ -37,6 +37,7 @@ class Problem:
             startingPoint = row["Starting Point"]
 
             shipment = Shipment(
+                shipmentId=idx,
                 month=month,
                 postalCode=postalCode,
                 country=country,
