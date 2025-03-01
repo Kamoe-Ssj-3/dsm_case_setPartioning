@@ -30,7 +30,6 @@ class SPPModel:
                 obj=warehouse.openingCost,
                 name=f"OpenWarehouse_{warehouse.warehouseId}"
             )
-
             for t in self.problem.timePeriods:
                 self.model.addConstr(
                     0 <= warehouse.capacity * y_var,
@@ -41,10 +40,26 @@ class SPPModel:
 
     def solveRMP(self):
         self.model.optimize()
-        return self.model.ObjVal
 
+        if self.model.status != GRB.OPTIMAL:
+            return None, None, None
 
+        lambdas = []
+        for idx in range(len(self.problem.shipments)):
+            c = self.model.getConstrByName(f"CoverShipment_{idx}")
+            lambdas.append(c.Pi)
 
-    # def addColumns(self, pairs):
+        mu = {}  # Key: (siteId, timePeriod), Value: dual value
+        for t in self.problem.timePeriods:
+            c_name = f"ProductionCapacity_CH01_T{t}"
+            c = self.model.getConstrByName(c_name)
+            mu[('CH01', t)] = c.Pi
 
+        sigma = {} # Key: (warehouseId, timePeriod), Value: dual value
+        for warehouse in self.problem.warehouses:
+            for t in self.problem.timePeriods:
+                c_name = f"WarehouseCapacity_{warehouse.warehouseId}_T{t}"
+                c = self.model.getConstrByName(c_name)
+                sigma[(warehouse.warehouseId, t)] = c.Pi
 
+        return lambdas, mu, sigma
