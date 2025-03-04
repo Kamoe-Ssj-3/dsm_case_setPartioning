@@ -39,12 +39,12 @@ class PricingAlgorithm:
         for warehouse in self.problem.warehouses:
             warehouseId = warehouse.warehouseId
 
-            if warehouseId == "WH1" or "WH2":
+            if warehouseId in ["WH1", "WH2"]:
                 tildeCost = warehouse.shuttleCost * weight
             else:
                 tildeCost = self.calculateCostBetweenPoints(warehouse.country, warehouse.postalCode, startPoint, weight, dangerous)
             if not isPickUp:
-                if warehouseId == "WH1" or "WH2":
+                if warehouseId in ["WH1", "WH2"]:
                     tildeCost += self.calculateCostBetweenPoints(country, postalCode, startPoint, weight, dangerous)
                 else:
                     tildeCost += self.calculateCostBetweenPoints(country, postalCode, warehouseId, weight, dangerous)
