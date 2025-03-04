@@ -24,7 +24,7 @@ class Problem:
 
         shipments = []
         for idx, row in df.iterrows():
-            month = str(row["Month-Year"])[-2:]
+            month = int(str(row["Month-Year"])[-2:])
             postalCode = str(row["Postal Code 2 digits"]).strip()[:2]
             country = row["Country of Destination"]
 
@@ -84,7 +84,7 @@ class Problem:
                     country='CH',
                     capacity=1000 * 700,
                     openingCost=0,
-                    shuttleCost=0.1,
+                    shuttleCost=0.1 * cr,
                     nonDgCost=0,
                     dgCost=0,
                     inboundCost=10 * cr / 700,
@@ -97,7 +97,7 @@ class Problem:
                     country='CH',
                     capacity=2000 * 700,
                     openingCost=0,
-                    shuttleCost=0.05,
+                    shuttleCost=0.05 * cr,
                     nonDgCost=15 * cr / 700,
                     dgCost=15 * cr / 700,
                     inboundCost=10 * cr / 700,
