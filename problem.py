@@ -107,7 +107,7 @@ class Problem:
                 if i == 2:
                     warehouseId = 'FR01'
                     country = 'FR'
-                    postalCode = '01'
+                    postalCode = '74'
                     openingCost = 0
                 elif i == 3:
                     warehouseId = 'ES50'
