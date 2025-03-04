@@ -21,8 +21,7 @@ def main():
     print()
     print("Warehouses:")
     for w in problem.warehouses:
-        print(w.warehouseId, w.postalCode, w.country, w.capacity, w.shuttleCost,
-              w.xDockCost, w.nonDgCost, w.dgCost, w.inboundCost, w.outboundCost)
+        print(w.warehouseId, w.postalCode, w.country, w.capacity, w.shuttleCost, w.nonDgCost, w.dgCost, w.inboundCost, w.outboundCost)
 
     print()
     # print('Cost dictionary:')

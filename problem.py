@@ -13,6 +13,9 @@ class Problem:
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
         self.timePeriods = list(range(1, 13))
         self.routeCostDictionary = RouteCost(csvFilePath)
+        self.alpha = 1
+        self.eta = 1
+        self.beta = 1
 
     @staticmethod
     def extract_data(file_path):
@@ -27,7 +30,7 @@ class Problem:
 
             if country.strip().lower() == "pickup":
                 postalCode = "Null"
-                country = "null"
+                country = "Null"
                 isPickUp = True
             else:
                 isPickUp = False
@@ -82,9 +85,8 @@ class Problem:
                     capacity=1000 * 700,
                     openingCost=0,
                     shuttleCost=0.1,
-                    xDockCost=0.1,
-                    nonDgCost=None,
-                    dgCost=None,
+                    nonDgCost=0,
+                    dgCost=0,
                     inboundCost=10 * cr / 700,
                     outboundCost=10 * cr / 700
                 )
@@ -96,7 +98,6 @@ class Problem:
                     capacity=2000 * 700,
                     openingCost=0,
                     shuttleCost=0.05,
-                    xDockCost=None,
                     nonDgCost=15 * cr / 700,
                     dgCost=15 * cr / 700,
                     inboundCost=10 * cr / 700,
@@ -130,8 +131,7 @@ class Problem:
                     country=country,
                     capacity=5000 * 700,
                     openingCost=openingCost,
-                    shuttleCost=0.05,
-                    xDockCost=None,
+                    shuttleCost=0,
                     nonDgCost=8 / 700,
                     dgCost=12 / 700,
                     inboundCost=4 / 700,
