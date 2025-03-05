@@ -41,6 +41,7 @@ class SPPModel:
         self.model.update()
 
     def solveRMP(self):
+        self.model.setParam('OutputFlag', 0)
         self.model.optimize()
 
         if self.model.status != GRB.OPTIMAL:

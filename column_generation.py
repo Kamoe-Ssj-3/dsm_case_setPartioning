@@ -11,10 +11,12 @@ class ColumnGeneration:
         model.initialize_RMP()
 
         lambdas, mu, sigma = model.solveRMP()
-        print("Lambdas, originele volgorde")
-        print(lambdas[:1000])
+        # print("Lambdas, originele volgorde")
+        # print(lambdas[:1000])
 
         columns = PricingAlgorithm(self.problem).find(lambdas, mu, sigma)
+
+        print(columns)
 
 
         #model.addColumns(columns)

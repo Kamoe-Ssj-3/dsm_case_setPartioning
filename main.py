@@ -10,7 +10,7 @@ def main():
     problem = Problem(filePath, csvFilePath)
 
     print("Shipments:")
-    for s in problem.shipments[:50]:
+    for s in problem.shipments:
         print(s.shipmentId, s.month, s.postalCode, s.country, s.isDangerous, s.weight, s.isPickUp, s.planning, s.startingPoint)
 
     print()

@@ -24,6 +24,8 @@ class Problem:
 
         shipments = []
         for idx, row in df.iterrows():
+            if idx >= 10:
+                break
             month = int(str(row["Month-Year"])[-2:])
             postalCode = str(row["Postal Code 2 digits"]).strip()[:2]
             country = row["Country of Destination"]

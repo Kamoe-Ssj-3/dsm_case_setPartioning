@@ -9,7 +9,6 @@ class PricingAlgorithm:
         self.columns = []
 
         sortedShipments = self.sortShipments(lambdas)
-        sortedShipments = sortedShipments[2038:]
 
         for lambda_value, shipment in sortedShipments:
             country = shipment.country
@@ -60,14 +59,14 @@ class PricingAlgorithm:
 
     def sortShipments(self, lambdas):
         sorted_lambdas = sorted(enumerate(lambdas), key=lambda x: x[1], reverse=True)
-        print("lambdas, gesorteerde volgorde")
-        print(sorted_lambdas[:1000])
-        # In 2e iteratie argmax lamda opslaan, dan self.problem.shipments[argmax] printen, en kijken of pairing goed gaat.
-        print("shipments, originele volgorde")
-        print(self.problem.shipments[:1000])
+        # print("lambdas, gesorteerde volgorde")
+        # print(sorted_lambdas[:1000])
+        # # In 2e iteratie argmax lamda opslaan, dan self.problem.shipments[argmax] printen, en kijken of pairing goed gaat.
+        # print("shipments, originele volgorde")
+        # print(self.problem.shipments[:1000])
         sorted_data = [(value, self.problem.shipments[index]) for index, value in sorted_lambdas]
-        print("lambdas en shipments pairs, gesorteerde volgorde")
-        print(sorted_data[:1000])
+        # print("lambdas en shipments pairs, gesorteerde volgorde")
+        # print(sorted_data[:1000])
         return sorted_data
 
     def calculateCostBetweenPoints(self, country, postalCode, startPoint, weight, dangerous):
