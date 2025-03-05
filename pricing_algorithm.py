@@ -9,7 +9,7 @@ class PricingAlgorithm:
         self.columns = []
 
         sortedShipments = self.sortShipments(lambdas)
-        sortedShipments = sortedShipments[7280:]
+        sortedShipments = sortedShipments[2038:]
 
         for lambda_value, shipment in sortedShipments:
             country = shipment.country
@@ -88,7 +88,7 @@ class PricingAlgorithm:
 
 
         multiplier = 1 # For MTO
-        if shipment.planning == "MTS":
+        if shipment.planning == "MTO":
             multiplier = 0.25
 
         if isDangerous:

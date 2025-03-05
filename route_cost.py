@@ -79,7 +79,10 @@ class RouteCost:
         for max_weight, cost_category in self.weight_categories:
             if weight <= max_weight:
                 customClearance = self.routeCostDictionary[country][postal_code][startPoint]["Custom Clearance"]
-                cost += self.routeCostDictionary[country][postal_code][startPoint][cost_category] / 100 * weight
+                if cost_category != "FTL":
+                    cost += self.routeCostDictionary[country][postal_code][startPoint][cost_category] / 100 * weight
+                else:
+                    cost += self.routeCostDictionary[country][postal_code][startPoint][cost_category]
                 cost += customClearance
                 if cost < minCost:
                     return minCost
