@@ -154,11 +154,6 @@ class SPPModel:
 
         print('----------------')
 
-
-
-
-
-
         return self.model.ObjVal
 
     def printConstraints(self):
