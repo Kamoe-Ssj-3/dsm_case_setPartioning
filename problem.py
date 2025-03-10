@@ -13,9 +13,10 @@ class Problem:
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
         self.timePeriods = list(range(1, 13))
         self.routeCostDictionary = RouteCost(csvFilePath)
-        self.alpha = 1
-        self.eta = 1
-        self.beta = 1
+        self.gamma = 1
+        self.alpha = 0.1
+        self.eta = 0.129
+        self.beta = 100
 
     @staticmethod
     def extract_data(file_path):
@@ -24,10 +25,11 @@ class Problem:
 
         shipments = []
         for idx, row in df.iterrows():
-            if idx >= 10:
+            if idx > 150000:
                 break
+
             month = int(str(row["Month-Year"])[-2:])
-            postalCode = str(row["Postal Code 2 digits"]).strip()[:2]
+            postalCode = str(row["Postal Code 2 digits"])
             country = row["Country of Destination"]
 
             if country.strip().lower() == "pickup":
@@ -85,7 +87,7 @@ class Problem:
                     postalCode='12',
                     country='CH',
                     capacity=1000 * 700,
-                    openingCost=0,
+                    openingCost=1e-6,
                     shuttleCost=0.1 * cr,
                     nonDgCost=0,
                     dgCost=0,
@@ -98,7 +100,7 @@ class Problem:
                     postalCode='12',
                     country='CH',
                     capacity=2000 * 700,
-                    openingCost=0,
+                    openingCost=1e-6,
                     shuttleCost=0.05 * cr,
                     nonDgCost=15 * cr / 700,
                     dgCost=15 * cr / 700,
@@ -110,7 +112,7 @@ class Problem:
                     warehouseId = 'FR01'
                     country = 'FR'
                     postalCode = '74'
-                    openingCost = 0
+                    openingCost = 1e-6
                 elif i == 3:
                     warehouseId = 'ES50'
                     country = 'ES'

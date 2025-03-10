@@ -6,26 +6,36 @@ class ColumnGeneration:
         self.problem = problem
 
     def run(self):
+        # Instantiate the master problem (RMP)
         model = SPPModel(self.problem)
-
         model.initialize_RMP()
 
-        lambdas, mu, sigma = model.solveRMP()
-        # print("Lambdas, originele volgorde")
-        # print(lambdas[:1000])
+        pricingAlg = PricingAlgorithm(self.problem)
 
-        columns = PricingAlgorithm(self.problem).find(lambdas, mu, sigma)
+        iteration = 0
+        while True:
+            iteration += 1
+            print(f"\n--- Iteration {iteration} ---")
 
-        print(columns)
+            # Solve the restricted master problem
+            lambdas, mu, sigma, objValue = model.solveRMP()
+            print(f"Current objective value: {objValue}")
 
+            columns = pricingAlg.find(lambdas, mu, sigma)
 
-        #model.addColumns(columns)
+            if not columns:
+                break
 
+            model.addColumns(columns)
 
+        # model.printConstraints()
 
+        print("Final objective value Relaxation:", objValue)
 
+        model.convertAllVarsToBinary()
 
+        finalObjVal = model.solve()
 
+        print("Final objective value:", finalObjVal)
 
-
-
+        return finalObjVal

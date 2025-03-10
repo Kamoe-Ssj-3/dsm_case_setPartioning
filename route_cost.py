@@ -74,7 +74,8 @@ class RouteCost:
         if weight > 20000:
             cost = self.routeCostDictionary[country][postal_code][startPoint]["FTL"]
             weight -= 20000
-
+        if postal_code == 'Ir':
+            print(postal_code)
         minCost = self.routeCostDictionary[country][postal_code][startPoint]["Minimum"]
         for max_weight, cost_category in self.weight_categories:
             if weight <= max_weight:

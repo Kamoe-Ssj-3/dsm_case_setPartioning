@@ -2,13 +2,19 @@ class PricingAlgorithm:
 
     def __init__(self, problem):
         self.problem = problem
-        self.columns = []
+        self.foundColumns = []
 
+        self.columns = {}
+
+        for s in self.problem.shipments:
+            self.columns[s.shipmentId] = set()
 
     def find(self, lambdas, mu, sigma):
-        self.columns = []
+        N = 10000
+        self.foundColumns = []
 
         sortedShipments = self.sortShipments(lambdas)
+        sortedShipments = sortedShipments[:N]
 
         for lambda_value, shipment in sortedShipments:
             country = shipment.country
@@ -24,14 +30,14 @@ class PricingAlgorithm:
                     tildeCost = 0
                 else:
                     tildeCost = self.calculateCostBetweenPoints(country, postalCode, startPoint, weight, dangerous)
-                self.findDirectPair(tildeCost, lambda_value, shipment, mu[month], startPoint)
+                self.findDirectPair(tildeCost, lambda_value, shipment, mu[month - 1], startPoint)
 
                 self.findWarehousePair(shipment, country, postalCode, startPoint, weight, dangerous, month,
                                        lambda_value, sigma, isPickUp)
             else:
                 self.findWarehousePair(shipment, country, postalCode, startPoint, weight, dangerous, month,
                                        lambda_value, sigma, isPickUp)
-        return self.columns
+        return self.foundColumns
 
     def findWarehousePair(self, shipment, country, postalCode, startPoint, weight, dangerous, month, lambda_value,
                           sigma, isPickUp):
@@ -54,19 +60,13 @@ class PricingAlgorithm:
 
     def findDirectPair(self, tildeCost, lambda_value, shipment, dual, pairPoint):
         reducedCost = self.calculateRedCost(tildeCost, lambda_value, shipment, dual)
-        if reducedCost < 0:
-            self.columns.append([tildeCost, pairPoint, shipment])
+        if reducedCost < 0 and pairPoint not in self.columns[shipment.shipmentId]:
+            self.foundColumns.append([tildeCost, pairPoint, shipment])
+            self.columns[shipment.shipmentId].add(pairPoint)
 
     def sortShipments(self, lambdas):
         sorted_lambdas = sorted(enumerate(lambdas), key=lambda x: x[1], reverse=True)
-        # print("lambdas, gesorteerde volgorde")
-        # print(sorted_lambdas[:1000])
-        # # In 2e iteratie argmax lamda opslaan, dan self.problem.shipments[argmax] printen, en kijken of pairing goed gaat.
-        # print("shipments, originele volgorde")
-        # print(self.problem.shipments[:1000])
         sorted_data = [(value, self.problem.shipments[index]) for index, value in sorted_lambdas]
-        # print("lambdas en shipments pairs, gesorteerde volgorde")
-        # print(sorted_data[:1000])
         return sorted_data
 
     def calculateCostBetweenPoints(self, country, postalCode, startPoint, weight, dangerous):
@@ -79,12 +79,11 @@ class PricingAlgorithm:
         kilometers = self.problem.routeCostDictionary.getDistance(country, postalCode, startPoint)
         leadtime = self.problem.routeCostDictionary.getLeadtime(country, postalCode, startPoint)
 
-        return route_cost + (self.problem.alpha * self.problem.eta * kilometers) + (self.problem.beta * leadtime)
+        return self.problem.gamma * route_cost + (self.problem.alpha * self.problem.eta * kilometers) + (self.problem.beta * leadtime)
 
     def calculateWarehouseCost(self, warehouse, shipment):
         isDangerous = shipment.isDangerous
         cost = warehouse.inboundCost + warehouse.outboundCost
-
 
         multiplier = 1 # For MTO
         if shipment.planning == "MTO":
