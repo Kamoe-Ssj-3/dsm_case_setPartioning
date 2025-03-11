@@ -2,6 +2,7 @@ import pprint
 
 from problem import Problem
 from column_generation import ColumnGeneration
+from exact_algorithm import ExactAlgorithm
 
 def main():
     filePath = "shipment_data_def.csv"
@@ -27,8 +28,10 @@ def main():
     # print('Cost dictionary:')
     # pprint.pprint(problem.routeCostDictionary)
 
-    value = ColumnGeneration(problem).run()
+    # value = ColumnGeneration(problem).run()
 
+    exact = ExactAlgorithm(problem)
+    exact.solve()
 
 if __name__ == "__main__":
     main()

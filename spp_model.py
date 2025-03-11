@@ -20,16 +20,15 @@ class SPPModel:
             self.model.addConstr(slack_var == 1, name=f"CoverShipment_{shipment.shipmentId}")
 
         for t in self.problem.timePeriods:
-            # Create an empty linear expression and set it <= 250000
+            # Define an empty linear expression (though it should ideally have variables)
             prod_constr = self.model.addConstr(
-                LinExpr(),
-                GRB.LESS_EQUAL,
-                250000,
+                LinExpr() <= 250000,
                 name=f"ProductionCapacity_CH01_T{t}"
             )
 
             # 3) Warehouse-opening variables and constraints
             # We do:  sum_{shipments} (weight_s*x_r) - capacity*y_var <= 0
+
         for warehouse in self.problem.warehouses:
             # y_var in [0,1] in LP relaxation, with cost = warehouse.openingCost
             y_var = self.model.addVar(
@@ -43,9 +42,7 @@ class SPPModel:
             # For each time period, create the capacity constraint
             for t in self.problem.timePeriods:
                 cap_constr = self.model.addConstr(
-                    LinExpr(),  # initially 0
-                    GRB.LESS_EQUAL,  # <=
-                    0.0,
+                    LinExpr() <= 0.0,
                     name=f"WarehouseCapacity_{warehouse.warehouseId}_T{t}"
                 )
                 # sum_{x_r} weight - capacity*y_var <= 0
