@@ -1,9 +1,16 @@
 from gurobipy import Model, GRB, quicksum, LinExpr
+import time
 
 class ExactAlgorithm:
     def __init__(self, problem):
         self.problem = problem
         self.model = None
+        self.columns = {}
+
+        for t in self.problem.timePeriods:
+            self.columns[t] = {}
+        for s in self.problem.shipments:
+            self.columns[s.month][s.shipmentId] = []
 
     def solve(self):
         self.initialize_RMP()
@@ -37,9 +44,62 @@ class ExactAlgorithm:
 
     def initialize_RMP(self):
         self.model = Model("SPP")
+        start_time = time.time()
+        self.findTildeCost()
+        end_time = time.time()
 
-        self.createEmptyModel()
+        print(f"findTildeCost execution time: {end_time - start_time:.6f} seconds")
 
+        # Decision variables
+        x = {}  # Binary decision variable for route selection
+        y = {}  # Binary decision variable for warehouse selection
+
+        for t in self.columns:
+            for s in self.columns[t]:
+                for cost, wh in self.columns.get(t, {}).get(s, []):
+                    x[(wh, s)] = self.model.addVar(vtype=GRB.BINARY, obj=cost, name=f"x_{wh}_{s}")
+
+        for warehouse in self.problem.warehouses:
+            y[warehouse] = self.model.addVar(vtype=GRB.BINARY, obj=warehouse.openingCost,  name=f"y_{warehouse.warehouseId}")
+
+        # Constraint 1: Each shipment must be assigned to exactly one route
+        for s in self.problem.shipments:
+            lhs_expr = quicksum(
+                x[(r, s.shipmentId)]
+                for t in self.problem.timePeriods
+                for cost, r in self.columns.get(t, {}).get(s.shipmentId, [])
+            )
+            self.model.addConstr(lhs_expr == 1, name=f"shipment_{s.shipmentId}")
+
+        for t in self.problem.timePeriods:
+            lhs_expr = quicksum(
+                s.weight * x[(r, s.shipmentId)]
+                for s in self.problem.shipments
+                for cost, r in self.columns.get(t, {}).get(s.shipmentId, [])
+                if r == "CH01"
+            )
+            self.model.addConstr(lhs_expr <= 250000, name=f"capacity_t_{t}")
+
+
+            # Constraint 3: Warehouse capacity constraint
+        for warehouse in self.problem.warehouses:
+            for t in self.problem.timePeriods:
+                lhs_expr = quicksum(
+                    s.weight * x[(r, s.shipmentId)]
+                    for s in self.problem.shipments
+                    for cost, r in self.columns.get(t, {}).get(s.shipmentId, [])
+                    if r == warehouse.warehouseId
+                )
+                self.model.addConstr(
+                    lhs_expr <= warehouse.capacity * y[warehouse],
+                    name=f"wh_{warehouse}_t_{t}"
+                )
+
+        self.model.update()
+
+        # self.createEmptyModel()
+
+    def findTildeCost(self):
         for shipment in self.problem.shipments:
             country = shipment.country
             postalCode = shipment.postalCode
@@ -53,7 +113,7 @@ class ExactAlgorithm:
                     tildeCost = 0
                 else:
                     tildeCost = self.calculateCostBetweenPoints(country, postalCode, startPoint, weight, dangerous)
-                self.addColumn(tildeCost, shipment, startPoint)
+                self.columns[shipment.month][shipment.shipmentId].append([tildeCost, startPoint])
 
                 self.findWarehousePair(shipment, country, postalCode, startPoint, weight, dangerous, isPickUp)
             else:
@@ -96,40 +156,40 @@ class ExactAlgorithm:
 
         self.model.update()
 
-    def addColumn(self, tildeCost, shipment, pairPoint):
-        # Create a new variable for this route in the RMP:
-        var_name = f"Route_Sh{shipment.shipmentId}_via_{pairPoint}"
-        route_var = self.model.addVar(
-            lb=0,
-            ub=1,
-            obj=tildeCost,
-            vtype=GRB.CONTINUOUS,
-            name=var_name
-        )
-        # 1. Add to "cover shipment" constraint:
-        cover_constr = self.model.getConstrByName(f"CoverShipment_{shipment.shipmentId}")
-        # Coefficient = 1 if this route covers that shipment
-        self.model.chgCoeff(cover_constr, route_var, 1.0)
-
-        # 2. Add capacity usage to the correct constraint(s):
-        #    We'll assume shipment has some .timePeriod or similar attribute
-        #    and that route_wh can be a production site or a warehouse.
-        t = shipment.month
-        w_s = shipment.weight
-
-        # If route_wh is a production site (e.g. "CH01"), update the production constraint
-        if pairPoint == 'CH01':  # or however you identify it
-            constr_name = f"ProductionCapacity_CH01_T{t}"
-            cap_constr = self.model.getConstrByName(constr_name)
-            self.model.chgCoeff(cap_constr, route_var, w_s)
-        else:
-            # Otherwise, this must be a warehouse
-            constr_name = f"WarehouseCapacity_{pairPoint}_T{t}"
-            cap_constr = self.model.getConstrByName(constr_name)
-            self.model.chgCoeff(cap_constr, route_var, w_s)
-
-        # After adding all the route columns, update the model
-        self.model.update()
+    # def findDirectPair(self, tildeCost, shipment, pairPoint):
+    #     Create a new variable for this route in the RMP:
+    #     var_name = f"Route_Sh{shipment.shipmentId}_via_{pairPoint}"
+    #     route_var = self.model.addVar(
+    #         lb=0,
+    #         ub=1,
+    #         obj=tildeCost,
+    #         vtype=GRB.CONTINUOUS,
+    #         name=var_name
+    #     )
+    #     # 1. Add to "cover shipment" constraint:
+    #     cover_constr = self.model.getConstrByName(f"CoverShipment_{shipment.shipmentId}")
+    #     # Coefficient = 1 if this route covers that shipment
+    #     self.model.chgCoeff(cover_constr, route_var, 1.0)
+    #
+    #     # 2. Add capacity usage to the correct constraint(s):
+    #     #    We'll assume shipment has some .timePeriod or similar attribute
+    #     #    and that route_wh can be a production site or a warehouse.
+    #     t = shipment.month
+    #     w_s = shipment.weight
+    #
+    #     # If route_wh is a production site (e.g. "CH01"), update the production constraint
+    #     if pairPoint == 'CH01':  # or however you identify it
+    #         constr_name = f"ProductionCapacity_CH01_T{t}"
+    #         cap_constr = self.model.getConstrByName(constr_name)
+    #         self.model.chgCoeff(cap_constr, route_var, w_s)
+    #     else:
+    #         # Otherwise, this must be a warehouse
+    #         constr_name = f"WarehouseCapacity_{pairPoint}_T{t}"
+    #         cap_constr = self.model.getConstrByName(constr_name)
+    #         self.model.chgCoeff(cap_constr, route_var, w_s)
+    #
+    #     # After adding all the route columns, update the model
+    #     self.model.update()
 
     def findWarehousePair(self, shipment, country, postalCode, startPoint, weight, dangerous, isPickUp):
         for warehouse in self.problem.warehouses:
@@ -147,7 +207,7 @@ class ExactAlgorithm:
 
             tildeCost += self.calculateWarehouseCost(warehouse, shipment)
 
-            self.addColumn(tildeCost, shipment, warehouseId)
+            self.columns[shipment.month][shipment.shipmentId].append([tildeCost, warehouseId])
 
     def calculateCostBetweenPoints(self, country, postalCode, startPoint, weight, dangerous):
         CHList = ["CH00", "CH01", "CH02"]
@@ -159,7 +219,7 @@ class ExactAlgorithm:
         kilometers = self.problem.routeCostDictionary.getDistance(country, postalCode, startPoint)
         leadtime = self.problem.routeCostDictionary.getLeadtime(country, postalCode, startPoint)
 
-        return self.problem.gamma * route_cost + (self.problem.alpha * self.problem.eta * kilometers) + (self.problem.beta * leadtime)
+        return self.problem.gamma * route_cost + (self.problem.alpha * self.problem.eta * weight * kilometers) + (self.problem.beta * leadtime)
 
     def searchCHStartingPoint(self, country, postal_code, startPoint):
         possible_primary = ["CH00", "CH01", "CH02"]

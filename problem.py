@@ -15,7 +15,7 @@ class Problem:
         self.routeCostDictionary = RouteCost(csvFilePath)
         self.gamma = 1
         self.alpha = 0.1
-        self.eta = 0.129
+        self.eta = 0.129 * 0.1
         self.beta = 100
 
     @staticmethod

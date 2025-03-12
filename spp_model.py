@@ -10,6 +10,7 @@ class SPPModel:
     def initialize_RMP(self, bigM=1e7):
         self.model = Model("SPP")
 
+
         for shipment in self.problem.shipments:
             slack_var = self.model.addVar(
                 lb=0,
