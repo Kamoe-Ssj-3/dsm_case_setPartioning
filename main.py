@@ -28,10 +28,10 @@ def main():
     # print('Cost dictionary:')
     # pprint.pprint(problem.routeCostDictionary)
 
-    # value = ColumnGeneration(problem).run()
+    value = ColumnGeneration(problem).run()
 
-    exact = ExactAlgorithm(problem)
-    exact.solve()
+    # exact = ExactAlgorithm(problem)
+    # exact.solve()
 
 if __name__ == "__main__":
     main()

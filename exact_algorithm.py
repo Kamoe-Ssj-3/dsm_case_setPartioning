@@ -156,41 +156,6 @@ class ExactAlgorithm:
 
         self.model.update()
 
-    # def findDirectPair(self, tildeCost, shipment, pairPoint):
-    #     Create a new variable for this route in the RMP:
-    #     var_name = f"Route_Sh{shipment.shipmentId}_via_{pairPoint}"
-    #     route_var = self.model.addVar(
-    #         lb=0,
-    #         ub=1,
-    #         obj=tildeCost,
-    #         vtype=GRB.CONTINUOUS,
-    #         name=var_name
-    #     )
-    #     # 1. Add to "cover shipment" constraint:
-    #     cover_constr = self.model.getConstrByName(f"CoverShipment_{shipment.shipmentId}")
-    #     # Coefficient = 1 if this route covers that shipment
-    #     self.model.chgCoeff(cover_constr, route_var, 1.0)
-    #
-    #     # 2. Add capacity usage to the correct constraint(s):
-    #     #    We'll assume shipment has some .timePeriod or similar attribute
-    #     #    and that route_wh can be a production site or a warehouse.
-    #     t = shipment.month
-    #     w_s = shipment.weight
-    #
-    #     # If route_wh is a production site (e.g. "CH01"), update the production constraint
-    #     if pairPoint == 'CH01':  # or however you identify it
-    #         constr_name = f"ProductionCapacity_CH01_T{t}"
-    #         cap_constr = self.model.getConstrByName(constr_name)
-    #         self.model.chgCoeff(cap_constr, route_var, w_s)
-    #     else:
-    #         # Otherwise, this must be a warehouse
-    #         constr_name = f"WarehouseCapacity_{pairPoint}_T{t}"
-    #         cap_constr = self.model.getConstrByName(constr_name)
-    #         self.model.chgCoeff(cap_constr, route_var, w_s)
-    #
-    #     # After adding all the route columns, update the model
-    #     self.model.update()
-
     def findWarehousePair(self, shipment, country, postalCode, startPoint, weight, dangerous, isPickUp):
         for warehouse in self.problem.warehouses:
             warehouseId = warehouse.warehouseId

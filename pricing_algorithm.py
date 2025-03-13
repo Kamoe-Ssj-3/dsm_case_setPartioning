@@ -8,6 +8,10 @@ class PricingAlgorithm:
 
         for s in self.problem.shipments:
             self.columns[s.shipmentId] = set()
+            if s.startingPoint == "CH01":
+                self.columns[s.shipmentId].add("CH01")
+            for warehouse in self.problem.warehouses:
+                self.columns[s.shipmentId].add(warehouse)
 
     def find(self, lambdas, mu, sigma):
         N = 10000
@@ -25,7 +29,7 @@ class PricingAlgorithm:
             month = shipment.month
             isPickUp = shipment.isPickUp
 
-            if startPoint == "CH01":
+            if startPoint == "CH01" and startPoint in self.columns[shipment.shipmentId]:
                 if isPickUp:
                     tildeCost = 0
                 else:
@@ -41,7 +45,8 @@ class PricingAlgorithm:
 
     def findWarehousePair(self, shipment, country, postalCode, startPoint, weight, dangerous, month, lambda_value,
                           sigma, isPickUp):
-        for warehouse in self.problem.warehouses:
+        warehousesToBeConsidered = set(self.columns[shipment.shipmentId])
+        for warehouse in warehousesToBeConsidered:
             warehouseId = warehouse.warehouseId
 
             if warehouseId in ["WH1", "WH2"]:
@@ -56,13 +61,16 @@ class PricingAlgorithm:
 
             tildeCost += self.calculateWarehouseCost(warehouse, shipment)
 
-            self.findDirectPair(tildeCost, lambda_value, shipment, sigma[warehouseId, month], warehouseId)
+            self.findDirectPair(tildeCost, lambda_value, shipment, sigma[warehouseId, month], warehouse)
 
     def findDirectPair(self, tildeCost, lambda_value, shipment, dual, pairPoint):
         reducedCost = self.calculateRedCost(tildeCost, lambda_value, shipment, dual)
-        if reducedCost < 0 and pairPoint not in self.columns[shipment.shipmentId]:
-            self.foundColumns.append([tildeCost, pairPoint, shipment])
-            self.columns[shipment.shipmentId].add(pairPoint)
+        if reducedCost < 0:
+            if pairPoint == "CH01":
+                self.foundColumns.append([tildeCost, pairPoint, shipment])
+            else:
+                self.foundColumns.append([tildeCost, pairPoint.warehouseId, shipment])
+            self.columns[shipment.shipmentId].remove(pairPoint)
 
     def sortShipments(self, lambdas):
         sorted_lambdas = sorted(enumerate(lambdas), key=lambda x: x[1], reverse=True)
