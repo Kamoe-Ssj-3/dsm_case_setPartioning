@@ -60,7 +60,7 @@ class ExactAlgorithm:
                     x[(wh, s)] = self.model.addVar(vtype=GRB.BINARY, obj=cost, name=f"x_{wh}_{s}")
 
         for warehouse in self.problem.warehouses:
-            y[warehouse] = self.model.addVar(vtype=GRB.BINARY, obj=warehouse.openingCost,  name=f"y_{warehouse.warehouseId}")
+            y[warehouse] = self.model.addVar(vtype=GRB.BINARY, obj=warehouse.openingCost * self.problem.gamma,  name=f"y_{warehouse.warehouseId}")
 
         # Constraint 1: Each shipment must be assigned to exactly one route
         for s in self.problem.shipments:
@@ -81,7 +81,7 @@ class ExactAlgorithm:
             self.model.addConstr(lhs_expr <= 250000, name=f"capacity_t_{t}")
 
 
-            # Constraint 3: Warehouse capacity constraint
+        # Constraint 3: Warehouse capacity constraint
         for warehouse in self.problem.warehouses:
             for t in self.problem.timePeriods:
                 lhs_expr = quicksum(

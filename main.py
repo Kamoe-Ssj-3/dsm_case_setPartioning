@@ -1,4 +1,5 @@
 import pprint
+import time
 
 from problem import Problem
 from column_generation import ColumnGeneration
@@ -28,10 +29,13 @@ def main():
     # print('Cost dictionary:')
     # pprint.pprint(problem.routeCostDictionary)
 
+    start = time.time()
     value = ColumnGeneration(problem).run()
 
     # exact = ExactAlgorithm(problem)
     # exact.solve()
+    end = time.time()
+    print("Total time: ", end-start)
 
 if __name__ == "__main__":
     main()

@@ -36,7 +36,7 @@ class SPPModel:
                 lb=0,
                 ub=1,
                 vtype=GRB.CONTINUOUS,  # or GRB.BINARY at the end
-                obj=warehouse.openingCost,
+                obj=warehouse.openingCost * self.problem.gamma,
                 name=f"OpenWarehouse_{warehouse.warehouseId}"
             )
 

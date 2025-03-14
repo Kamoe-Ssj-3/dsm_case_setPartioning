@@ -21,7 +21,7 @@ class ColumnGeneration:
             lambdas, mu, sigma, objValue = model.solveRMP()
             print(f"Current objective value: {objValue}")
 
-            columns = pricingAlg.find(lambdas, mu, sigma)
+            columns, overgebleven = pricingAlg.find(lambdas, mu, sigma)
 
             if not columns:
                 break
@@ -37,5 +37,7 @@ class ColumnGeneration:
         finalObjVal = model.solve()
 
         print("Final objective value:", finalObjVal)
+
+        print("Number of columns added: ", pricingAlg.numberOfColumns)
 
         return finalObjVal
