@@ -127,32 +127,35 @@ class SPPModel:
         self.model.update()
 
     def solve(self):
-        self.model.setParam('OutputFlag', 1)  # Enable Gurobi output
+        self.model.setParam('OutputFlag', 0)  # Enable Gurobi output
 
         self.model.optimize()
 
         # Print only the y variables (OpenWarehouse variables) with value 1
 
-        isBoolean = True
+        warehouseList = []
+
+        # isBoolean = True
         for v in self.model.getVars():
             if v.VarName.startswith('Open'):
                 print(f"{v.VarName} = {v.X}")
+                warehouseList.append(v.X)
 
-            if (v.varName.endswith('ES50') or v.varName.endswith('PL46')) and v.X > 0.005:
-                print(f"{v.VarName} = {v.X}")
-                isBoolean = False
-
-            if (v.varName.endswith('TR59')) and v.X > 0.005:
-                print(f"{v.VarName} = {v.X}")
+            # if (v.varName.endswith('ES50') or v.varName.endswith('PL46')) and v.X > 0.005:
+            #     print(f"{v.VarName} = {v.X}")
+            #     isBoolean = False
+            #
+            # if (v.varName.endswith('TR59')) and v.X > 0.005:
+            #     print(f"{v.VarName} = {v.X}")
 
         print('-------------------')
 
-        if isBoolean:
-            print('No shipment through Spain and Poland')
+        # if isBoolean:
+        #     print('No shipment through Spain and Poland')
 
-        print('----------------')
+        # print('----------------')
 
-        return self.model.ObjVal
+        return self.model.ObjVal, warehouseList
 
     def printConstraints(self):
         """

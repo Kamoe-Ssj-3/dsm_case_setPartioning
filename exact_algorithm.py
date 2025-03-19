@@ -6,6 +6,7 @@ class ExactAlgorithm:
         self.problem = problem
         self.model = None
         self.columns = {}
+        self.matchGurobiVar = {}
 
         for t in self.problem.timePeriods:
             self.columns[t] = {}
@@ -21,26 +22,29 @@ class ExactAlgorithm:
 
         # Print only the y variables (OpenWarehouse variables) with value 1
 
-        isBoolean = True
+        warehouseList = []
+
+        # isBoolean = True
         for v in self.model.getVars():
-            if v.VarName.startswith('Open'):
+            if v.VarName.startswith('y'):
                 print(f"{v.VarName} = {v.X}")
+                warehouseList.append(v.X)
 
-            if (v.varName.endswith('ES50') or v.varName.endswith('PL46')) and v.X > 0.005:
-                print(f"{v.VarName} = {v.X}")
-                isBoolean = False
-
-            if (v.varName.endswith('TR59')) and v.X > 0.005:
-                print(f"{v.VarName} = {v.X}")
+            # if (v.varName.endswith('ES50') or v.varName.endswith('PL46')) and v.X > 0.005:
+            #     print(f"{v.VarName} = {v.X}")
+            #     isBoolean = False
+            #
+            # if (v.varName.endswith('TR59')) and v.X > 0.005:
+            #     print(f"{v.VarName} = {v.X}")
 
         print('-------------------')
 
-        if isBoolean:
-            print('No shipment through Spain and Poland')
+        # if isBoolean:
+        #     print('No shipment through Spain and Poland')
 
-        print('----------------')
+        # print('----------------')
 
-        return self.model.ObjVal
+        return self.model.ObjVal, warehouseList
 
     def initialize_RMP(self):
         self.model = Model("SPP")
@@ -57,10 +61,12 @@ class ExactAlgorithm:
         for t in self.columns:
             for s in self.columns[t]:
                 for cost, wh in self.columns.get(t, {}).get(s, []):
-                    x[(wh, s)] = self.model.addVar(vtype=GRB.BINARY, obj=cost, name=f"x_{wh}_{s}")
+                    x[(wh, s)] = self.model.addVar(vtype=GRB.BINARY, obj=sum(cost), name=f"x_{wh}_{s}")
+                    self.matchGurobiVar[f"x_{wh}_{s}"] = cost
 
         for warehouse in self.problem.warehouses:
             y[warehouse] = self.model.addVar(vtype=GRB.BINARY, obj=warehouse.openingCost * self.problem.gamma,  name=f"y_{warehouse.warehouseId}")
+            self.matchGurobiVar[f"y_{warehouse.warehouseId}"] = warehouse.openingCost
 
         # Constraint 1: Each shipment must be assigned to exactly one route
         for s in self.problem.shipments:
@@ -97,8 +103,6 @@ class ExactAlgorithm:
 
         self.model.update()
 
-        # self.createEmptyModel()
-
     def findTildeCost(self):
         for shipment in self.problem.shipments:
             country = shipment.country
@@ -110,7 +114,7 @@ class ExactAlgorithm:
 
             if startPoint == "CH01":
                 if isPickUp:
-                    tildeCost = 0
+                    tildeCost = [0, 0, 0]
                 else:
                     tildeCost = self.calculateCostBetweenPoints(country, postalCode, startPoint, weight, dangerous)
                 self.columns[shipment.month][shipment.shipmentId].append([tildeCost, startPoint])
@@ -119,58 +123,23 @@ class ExactAlgorithm:
             else:
                 self.findWarehousePair(shipment, country, postalCode, startPoint, weight, dangerous, isPickUp)
 
-    def createEmptyModel(self):
-        for shipment in self.problem.shipments:
-            self.model.addConstr(LinExpr() == 1, name=f"CoverShipment_{shipment.shipmentId}")
-
-        for t in self.problem.timePeriods:
-            # Define an empty linear expression (though it should ideally have variables)
-            prod_constr = self.model.addConstr(
-                LinExpr() <= 250000,
-                name=f"ProductionCapacity_CH01_T{t}"
-            )
-
-            # 3) Warehouse-opening variables and constraints
-            # We do:  sum_{shipments} (weight_s*x_r) - capacity*y_var <= 0
-
-        for warehouse in self.problem.warehouses:
-            # y_var in [0,1] in LP relaxation, with cost = warehouse.openingCost
-            y_var = self.model.addVar(
-                lb=0,
-                ub=1,
-                vtype=GRB.BINARY,  # or GRB.BINARY at the end
-                obj=warehouse.openingCost,
-                name=f"OpenWarehouse_{warehouse.warehouseId}"
-            )
-
-            # For each time period, create the capacity constraint
-            for t in self.problem.timePeriods:
-                cap_constr = self.model.addConstr(
-                    LinExpr() <= 0.0,
-                    name=f"WarehouseCapacity_{warehouse.warehouseId}_T{t}"
-                )
-                # sum_{x_r} weight - capacity*y_var <= 0
-                # We only add the -capacity*y_var piece here;
-                # the route variables x_r get added in addColumns(...).
-                self.model.chgCoeff(cap_constr, y_var, -warehouse.capacity)
-
-        self.model.update()
-
     def findWarehousePair(self, shipment, country, postalCode, startPoint, weight, dangerous, isPickUp):
         for warehouse in self.problem.warehouses:
             warehouseId = warehouse.warehouseId
 
             if warehouseId in ["WH1", "WH2"]:
-                tildeCost = warehouse.shuttleCost * weight
+                tildeCost = [warehouse.shuttleCost * weight, 0, 0]
             else:
                 tildeCost = self.calculateCostBetweenPoints(warehouse.country, warehouse.postalCode, startPoint, weight, dangerous)
             if not isPickUp:
                 if warehouseId in ["WH1", "WH2"]:
-                    tildeCost += self.calculateCostBetweenPoints(country, postalCode, startPoint, weight, dangerous)
+                    extra_cost = self.calculateCostBetweenPoints(country, postalCode, startPoint, weight, dangerous)
                 else:
-                    tildeCost += self.calculateCostBetweenPoints(country, postalCode, warehouseId, weight, dangerous)
+                    extra_cost = self.calculateCostBetweenPoints(country, postalCode, warehouseId, weight, dangerous)
 
-            tildeCost += self.calculateWarehouseCost(warehouse, shipment)
+                tildeCost = [x + y for x, y in zip(tildeCost, extra_cost)]
+
+            tildeCost[0] += self.calculateWarehouseCost(warehouse, shipment)
 
             self.columns[shipment.month][shipment.shipmentId].append([tildeCost, warehouseId])
 
@@ -184,7 +153,7 @@ class ExactAlgorithm:
         kilometers = self.problem.routeCostDictionary.getDistance(country, postalCode, startPoint)
         leadtime = self.problem.routeCostDictionary.getLeadtime(country, postalCode, startPoint)
 
-        return self.problem.gamma * route_cost + (self.problem.alpha * self.problem.eta * weight * kilometers) + (self.problem.beta * leadtime)
+        return [self.problem.gamma * route_cost, (self.problem.alpha * self.problem.eta * weight * kilometers), (self.problem.beta * leadtime)]
 
     def searchCHStartingPoint(self, country, postal_code, startPoint):
         possible_primary = ["CH00", "CH01", "CH02"]
@@ -242,3 +211,20 @@ class ExactAlgorithm:
         cost = cost * shipment.weight
 
         return cost
+
+    def calculateSeparateCost(self):
+        c_rs = 0
+        emissionCost = 0
+        leadTimeCost = 0
+
+        for v in self.model.getVars():
+            if v.VarName.startswith('x'):
+                c_rs += v.X * self.matchGurobiVar[v.VarName][0] / self.problem.gamma
+                emissionCost += v.X * self.matchGurobiVar[v.VarName][1] / self.problem.alpha
+                leadTimeCost += v.X * self.matchGurobiVar[v.VarName][2] / self.problem.beta
+            if v.VarName.startswith('y'):
+                c_rs += v.X * self.matchGurobiVar[v.VarName] / self.problem.gamma
+
+        print("Transportation and warehouse cost: ", c_rs)
+        print("Emission cost: ", emissionCost)
+        print("Lead time cost: ", leadTimeCost)

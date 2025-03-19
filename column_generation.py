@@ -15,11 +15,11 @@ class ColumnGeneration:
         iteration = 0
         while True:
             iteration += 1
-            print(f"\n--- Iteration {iteration} ---")
+            # print(f"\n--- Iteration {iteration} ---")
 
             # Solve the restricted master problem
             lambdas, mu, sigma, objValue = model.solveRMP()
-            print(f"Current objective value: {objValue}")
+            # print(f"Current objective value: {objValue}")
 
             columns, overgebleven = pricingAlg.find(lambdas, mu, sigma)
 

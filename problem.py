@@ -9,14 +9,14 @@ from warehouse import Warehouse
 
 
 class Problem:
-    def __init__(self, filepath, csvFilePath):
+    def __init__(self, filepath, csvFilePath, gamma, alpha, beta):
         self.shipments, self.sites, self.warehouses = self.extract_data(filepath)
         self.timePeriods = list(range(1, 13))
         self.routeCostDictionary = RouteCost(csvFilePath)
-        self.gamma = 1
-        self.alpha = 0.1
+        self.gamma = gamma
+        self.alpha = alpha
         self.eta = 0.129 * 0.1
-        self.beta = 100
+        self.beta = beta
 
     @staticmethod
     def extract_data(file_path):
